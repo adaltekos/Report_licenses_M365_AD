@@ -1,8 +1,8 @@
 # Install required modules
-    #Install-Module SharePointPnPPowerShellOnline
-    #Install-Module Microsoft.Graph
-    #Install-Module ImportExcel
-    #Add-WindowsCapability -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -Online
+#Install-Module SharePointPnPPowerShellOnline
+#Install-Module Microsoft.Graph
+#Install-Module ImportExcel
+#Add-WindowsCapability -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -Online
 
 # Set variables
 $filename 		= "" #Complete with filename (ex. Raport_M365_users_services.xlsx)
@@ -43,25 +43,31 @@ $graphParams  = @{
 Connect-Graph @graphParams
 
 # Get subscribed SKU information and export to Excel
-Get-MgSubscribedSku | Select -Property SkuPartNumber, ConsumedUnits, @{Name='Enabled'; Expression={$_.PrepaidUnits.Enabled}}, @{Name='Suspended'; Expression={$_.PrepaidUnits.Suspended}}, @{Name='Warning'; Expression={$_.PrepaidUnits.Warning}} | Where-Object {($_.SkuPartNumber -eq "O365_BUSINESS_ESSENTIALS") -or ($_.SkuPartNumber -eq "O365_BUSINESS_PREMIUM")} | Export-Excel -Path ($onlinePath + $filename) -WorkSheetname new -AutoSize
+Get-MgSubscribedSku | 
+Select -Property SkuPartNumber, ConsumedUnits, 
+@{Name='Enabled'; Expression={$_.PrepaidUnits.Enabled}}, 
+@{Name='Suspended'; Expression={$_.PrepaidUnits.Suspended}}, 
+@{Name='Warning'; Expression={$_.PrepaidUnits.Warning}} | 
+Where-Object {($_.SkuPartNumber -eq "O365_BUSINESS_ESSENTIALS") -or ($_.SkuPartNumber -eq "O365_BUSINESS_PREMIUM")} | 
+Export-Excel -Path ($onlinePath + $filename) -WorkSheetname new -AutoSize
 
 Start-Sleep -s 3
 
 # Modify Excel sheet
-#Excel
+# Excel
 $excel = Open-ExcelPackage -Path ($onlinePath + $filename)
 
-#M365
+# M365
 $excel.old.Cells["A4:E5"].Value = $excel.old.Cells["A2:E3"].Value
 $excel.old.Cells["C2:D3"].Value = $excel.new.Cells["B2:C3"].Value
 $excel.old.Cells["A2"].Value = $(Get-Date -Format "MMM.yy")
 
-#AD
+# AD
 $excel.old.Cells["G3:K3"].Value = $excel.old.Cells["G2:K2"].Value
 $excel.old.Cells["I2"].Value = $((Get-ADUser -Filter *).count)
 $excel.old.Cells["G2"].Value = $(Get-Date -Format "MMM.yy")
 
-#Historia
+# Historia
 $excel.Historia.Cells["G1:BI5"].Value = $excel.Historia.Cells["B1:BD5"].Value
 $excel.Historia.Cells["B1"].Value = $(Get-Date -Format "MMM.yy")
 $excel.Historia.Cells["D3:D4"].Value = $excel.old.Cells["C2:C3"].Value
@@ -80,8 +86,8 @@ $excel.Historia.Cells["E5"].Value = $excel.Historia.Cells["D5"].Value - $excel.H
 Close-ExcelPackage -ExcelPackage $excel
 
 # Add the file from SharePoint Online
-$addPnPFileParams  = @{
-    Folder		= $onlinePath	
-    Path		= ($localPath + $filename)
+$addPnPFileParams = @{
+    Folder = $onlinePath	
+    Path   = ($localPath + $filename)
 }
 Add-PnPFile @addPnPFileParams
