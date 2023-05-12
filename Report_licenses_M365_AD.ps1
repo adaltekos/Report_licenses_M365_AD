@@ -1,8 +1,10 @@
-#Install-Module SharePointPnPPowerShellOnline
-#Install-Module Microsoft.Graph
-#Install-Module ImportExcel
-#Add-WindowsCapability -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -Online
+# Install required modules
+    #Install-Module SharePointPnPPowerShellOnline
+    #Install-Module Microsoft.Graph
+    #Install-Module ImportExcel
+    #Add-WindowsCapability -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -Online
 
+# Set variables
 $filename 		= "" #Complete with filename (ex. Raport_M365_users_services.xlsx)
 $localPath 		= "" #Complete with local path (ex. C:\Raporty\)
 $siteUrl		= "" #Complete with Url site (ex. https://company.sharepoint.com/sites/it-dep)
@@ -11,6 +13,7 @@ $tenant			= "" #Complete with tenant name (ex. company.onmicrosoft.com)
 $appId			= "" #Complete with ClientId (which is ID of application registered in Azure AD)
 $thumbprint		= "" #Complete with Thumbprint (which is certificate thumbprint)
 
+# Connect to SharePoint Online
 $pnpConnectParams  = @{
     Url				=  $siteUrl
     Tenant			=  $tenant
@@ -19,6 +22,7 @@ $pnpConnectParams  = @{
 }
 Connect-PnPOnline @pnpConnectParams
 
+# Get the file from SharePoint Online
 $getPnPFileParams = @{
     Url				= ($onlinePath + $filename)
     Path			= $localPath
@@ -30,6 +34,7 @@ Get-PnPFile @getPnPFileParams
 
 Start-Sleep -s 3
 
+# Connect to Microsoft Graph
 $graphParams  = @{
     Tenant					= $tenant
     AppId					= $appId
@@ -37,10 +42,12 @@ $graphParams  = @{
 }
 Connect-Graph @graphParams
 
+# Get subscribed SKU information and export to Excel
 Get-MgSubscribedSku | Select -Property SkuPartNumber, ConsumedUnits, @{Name='Enabled'; Expression={$_.PrepaidUnits.Enabled}}, @{Name='Suspended'; Expression={$_.PrepaidUnits.Suspended}}, @{Name='Warning'; Expression={$_.PrepaidUnits.Warning}} | Where-Object {($_.SkuPartNumber -eq "O365_BUSINESS_ESSENTIALS") -or ($_.SkuPartNumber -eq "O365_BUSINESS_PREMIUM")} | Export-Excel -Path ($onlinePath + $filename) -WorkSheetname new -AutoSize
 
 Start-Sleep -s 3
 
+# Modify Excel sheet
 #Excel
 $excel = Open-ExcelPackage -Path ($onlinePath + $filename)
 
@@ -72,6 +79,7 @@ $excel.Historia.Cells["E5"].Value = $excel.Historia.Cells["D5"].Value - $excel.H
 
 Close-ExcelPackage -ExcelPackage $excel
 
+# Add the file from SharePoint Online
 $addPnPFileParams  = @{
     Folder		= $onlinePath	
     Path		= ($localPath + $filename)
