@@ -5,7 +5,7 @@
 This PowerShell script retrieves the number of subscribed SKU information (licenses) from Microsoft Graph and the number of users from AD to compare with the purchased AD licenses. It exports the information to an Excel file stored in SharePoint Online.
 
 ## Prerequisites
-
+- PowerShell version 5.1 or later
 - Installed SharePointPnPPowerShellOnline module
 - Installed Microsoft.Graph module
 - Installed ImportExcel module
