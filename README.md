@@ -1,4 +1,4 @@
-# Report_licenses_M365_AD
+# Report licenses in M365 and AD
 
 ## Description
 
